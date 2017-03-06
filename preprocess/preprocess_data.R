@@ -1,8 +1,5 @@
-# データの読み込み
-load_raw_data <- function(datapath){
-  
-  # csvファイルを読み込む
-  data <- read.csv(file(datapath,encoding="shift-jis"),sep=",",header=T)
+# カラム名を英語に変更
+change_column_names <- function(data){
   
   # 日本語のカラム名をセーブする
   kpis <<- colnames(data)[6:19]
@@ -18,23 +15,38 @@ load_raw_data <- function(datapath){
   # 英語のカラム名をセーブする
   eng_kpis <<- colnames(data)[6:19]
   
+  
+  return(data)
+} 
+
+
+# データのフィルター
+filter_data <- function(data, minimum_cost, minimum_sales){
+  
+  data <- data %>%
+    filter(exception != 1, tokubi != 1,
+           cost > minimum_cost, sales > minimum_sales)
+  
   return(data)
 }
 
-# カテゴリ変数を作る
-create_category_variable <- function(data){
-  
-  ### データのフィルター
-  data <- data %>%
-    filter(exception != 1, tokubi != 1,
-           cost > 1000, sales > 1000)
+
+# シミュレーションする媒体のリストを作る
+create_category_pair <- function(data, test_range){
   
   # ユニークな媒体*デバイス変数を作る
   test_period <- as.Date(as.Date(test_range[1]):as.Date(test_range[2]), origin = "1970-01-01")
   category_pair <- data %>% filter(as.Date(date) %in% test_period) %>% distinct(category_pair) %>% unlist()
   
+  return(category_pair)
+}
+
+
+# カテゴリ変数を作る
+create_category_variable <- function(data, test_range, category_pair){
+
   # ユニークな媒体変数を作る
-  pc_or_sp <<- paste(c("_PC", "_SP"), collapse = "|")
+  pc_or_sp <- paste(c("_PC", "_SP"), collapse = "|")
   categories <<- gsub(pc_or_sp, "", category_pair)
   category_list <<- categories %>% unique()
   
@@ -44,7 +56,6 @@ create_category_variable <- function(data){
     inner_join(df, by = "category_pair")
   
   return(data)
-  
 }
 
 # 前処理
@@ -80,13 +91,14 @@ preprocess_data <- function(data){
            tokubi, year, month, week, 
            weight, exception)
   
+  return(data)
 }
 
 
 # 上限コストの読み込み
-read_upper_cost <- function(cost_file_name){
+process_upper_cost <- function(upper_cost){
   
-  upper_cost <- read.csv(file(cost_file_name, encoding="shift-jis"), sep=",", header=T)
+  upper_cost <- upper_cost
   colnames(upper_cost) <- c("category_pair", "upper_cost")
   upper_cost$category_pair <- upper_cost$category_pair %>% as.factor()
 
@@ -94,11 +106,14 @@ read_upper_cost <- function(cost_file_name){
 }
 
 # 日別割合を読み込む
-read_daily_pct <- function(daily_pct_name){
+process_daily_pct <- function(daily_pct){
   
   # 日別割合の読み込み
-  daily_pct <- read.csv(file(daily_pct_name, encoding="shift-jis"), sep=",", header=T) %>% 
-    mutate(date = as.Date(date))
+  daily_pct <- daily_pct
+  colnames(daily_pct) <- c("date", "pct")
+  daily_pct <- daily_pct %>% mutate(date = as.Date(date))
   
   return(daily_pct)
 }
+
+

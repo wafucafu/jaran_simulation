@@ -120,13 +120,13 @@ cross_validate <- function(train_start_date, test_range, data, category_pair, mo
   
   result_df <- data.frame()
   kpi <- cross_validation_kpi
+  test_period <- as.Date(as.Date(test_range[1]):as.Date(test_range[2]), origin = "1970-01-01")
   
   for (category in category_pair) {
 
     temp <- data %>% filter(category_pair == category)
 
     for (curvature in curvature_list){
-
 
       temp <- curate_data(temp, curvature, train_start_date, kpi)
       train_set <- temp %>% filter(!date %in% test_period)

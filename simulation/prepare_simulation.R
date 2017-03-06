@@ -1,4 +1,3 @@
-
 # シミュレートする期間を作る
 create_simulator <- function(selected_dates, category_pair){
   
@@ -7,6 +6,7 @@ create_simulator <- function(selected_dates, category_pair){
   end_date <- as.Date(selected_dates[2], origin = "1970-01-01")
   simulated_dates <- as.Date(start_date:end_date, origin = "1970-01-01")
   
+  pc_or_sp <- paste(c("_PC", "_SP"), collapse = "|")
   
   # 取得した期間と媒体を合体する
   simulated <- expand.grid(date = simulated_dates, category_pair = category_pair)
