@@ -6,7 +6,7 @@ response_term <- "sales"
 
 
 # 試す曲度のリスト
-curvature_list <- seq(0.5, 0.9, 0.1)
+curvature_list <- seq(0.2, 0.9, 0.05)
 
 
 ### シミュレーション関数

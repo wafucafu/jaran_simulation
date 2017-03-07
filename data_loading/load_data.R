@@ -22,8 +22,8 @@ render_sample_table <- function(data, option){
 
 
 # ナビゲーションバーのタブを切り替える
-switch_tabs <- function(session, destination){
+switch_tabs <- function(session, tab_id, destination){
   
-  updateNavbarPage(session, "navibar", selected = destination)
+  updateNavbarPage(session, tab_id, selected = destination)
   
 }

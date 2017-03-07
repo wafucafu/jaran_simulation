@@ -13,7 +13,7 @@ ui <- fluidPage(
   sidebarPanel(
 
     # 設定タブ
-    tabsetPanel(
+    tabsetPanel(id = "setting_tab",
 
       # 基本設定タブ
       tabPanel("基本設定", 
@@ -121,9 +121,14 @@ ui <- fluidPage(
                
                HTML('</br>'),
                
-               
                # プロットするKPIセレクト
-               selectInput("kpis", "KPI", c())
+               selectInput("kpis", "KPI", c()),
+               
+               # プロットの色の粒度
+               radioButtons("color_setting", "色の粒度", c("タイプ別", "月別")),
+               
+               # 期間設定
+               uiOutput("plot_period")
                
       )
       

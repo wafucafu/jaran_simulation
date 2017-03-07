@@ -30,19 +30,19 @@ server <- function(input, output, session) {
   # アップロードされたらタブを切り替える
   observeEvent(input$raw_data, {
     
-    switch_tabs(session, "過去データ")
+    switch_tabs(session, "navibar", "過去データ")
     
   })
   
   observeEvent(input$upper_cost, {
     
-    switch_tabs(session, "上限データ")
+    switch_tabs(session, "navibar", "上限データ")
     
   })
   
   observeEvent(input$daily_pct, {
     
-    switch_tabs(session, "日別割合")
+    switch_tabs(session, "navibar", "日別割合")
     
   })
   
@@ -314,8 +314,6 @@ server <- function(input, output, session) {
   
   category_pair <- reactive({
 
-    print("category")
-    
     if (is.null(filtered_data()) | is.null(input$test_range))
       return(NULL)
     
@@ -413,10 +411,6 @@ server <- function(input, output, session) {
     
     do.call(tabsetPanel, plot_tabs)
     
-    
-    
-    
-    
   })
   
   
@@ -425,12 +419,16 @@ server <- function(input, output, session) {
   ################################## シミュレーション ####################################
   
   # シミュレーションがスタートしたらタブを切り替える
-  observeEvent(input$start_simulation, {
+  eventReactive(input$start_simulation, {
     
-    print("start_simulation")
+    switch_tabs(session, "navibar", "シミュレーション結果")
     
-    switch_tabs(session, "シミュレーション結果")
+  })
+  
+  eventReactive(input$start_simulation, {
     
+    updateTabsetPanel(session, "setting_tab", "プロット設定")
+
   })
   
   
@@ -447,6 +445,8 @@ server <- function(input, output, session) {
       # シミュレート期間作成
       simulated <- create_simulator(input$date_range, category_pair())
       
+      print(input$long_holiday_range)
+      
       # シミュレート期間前処理
       simulated <- preprocess_simulated(simulated, input$long_holiday_button, input$long_holiday_range)
       
@@ -459,11 +459,24 @@ server <- function(input, output, session) {
     })
   
   
+  output$plot_period <- renderUI({
+    
+    if (is.null(validation_status$raw_data))
+      return(NULL)
+    
+    sliderInput("plot_range", 
+                "プロットする期間を設定", 
+                min = as.Date("2016-01-01"), 
+                max = Sys.Date(),
+                value = c(input$test_range[1], input$test_range[2]))
+    
+  })
+  
+  
   # プロットののタブの中身
   observe({
     
-    
-    if (is.null(simulated_results()))
+    if (is.null(simulated_results()) | is.null(input$plot_range))
       return(NULL)
     
     for (i in 1:length(category_pair())) {
@@ -478,7 +491,9 @@ server <- function(input, output, session) {
         
         output[[plotname]] <- renderPlot({ 
           
-          test_period <- as.Date(as.Date(input$test_range[1]):as.Date(input$test_range[2]), origin = "1970-01-01")
+
+          test_period <- as.Date(as.Date(input$plot_range[1]):as.Date(input$plot_range[2]), 
+                                 origin = "1970-01-01")
           
           past_data <- preprocessed_data() %>%
             filter(category_pair == target_category, 
@@ -488,10 +503,10 @@ server <- function(input, output, session) {
                    sales, booking, revenue, 
                    people, cash, newbie, old_newbie, 
                    sales_30, booking_30, revenue_30, 
-                   people_30, cash_30, newbie_30, old_newbie_30) %>% 
+                   people_30, cash_30, newbie_30, old_newbie_30, month) %>% 
             mutate(flag = "実績")
           
-          jap_columns <- c("施策", "予算") %>% append(kpis) %>% append("flag")
+          jap_columns <- c("施策", "予算") %>% append(kpis) %>% append(c("month", "flag"))
           colnames(past_data) <- jap_columns
           
           
@@ -504,10 +519,13 @@ server <- function(input, output, session) {
                    people, cash, newbie, old_newbie, 
                    sales_30, booking_30, revenue_30, 
                    people_30, cash_30, newbie_30, old_newbie_30) %>% 
-            mutate(flag = "予測")
+            mutate(month = month(input$date_range[2]),
+                   flag = "予測")
           
-          jap_columns <- c("施策", "予算") %>% append(kpis) %>% append("flag")
+          jap_columns <- c("施策", "予算") %>% append(kpis) %>% append(c("month", "flag"))
           colnames(plot) <- jap_columns
+          
+          
           
           varval <- lazyeval::interp(~target / n, 
                                      target = as.name("予算"), 
@@ -521,14 +539,18 @@ server <- function(input, output, session) {
           
           plot <- plot %>% mutate_(.dots = setNames(list(varval), input$kpis))
           
+          plot <- plot %>% rbind(past_data)
           
-          plot <- plot %>% rbind(past_data) 
+          plot <- plot %>% select(予算, get(input$kpis), flag, month)
           
-          plot <- plot %>% select(予算, get(input$kpis), flag)
-          
+          if (input$color_setting == "タイプ別"){
+            color_setting <- "flag"
+          } else {
+            color_setting <- "month"
+          }
           
           plot %>%
-            ggplot(aes(x=予算, y=get(input$kpis), color = flag)) + geom_point() + 
+            ggplot(aes(x=予算, y=get(input$kpis), color = get(color_setting))) + geom_point() +
             xlim(0, NA) + ylim(0, NA) +
             labs(y = input$kpis)
           

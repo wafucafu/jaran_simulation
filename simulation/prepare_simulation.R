@@ -25,6 +25,7 @@ preprocess_simulated <- function(simulated, long_holiday_flag, long_holiday_date
   # 日本の休日データを読み込む
   jp_holiday <- read_excel("data/jap_holiday.xlsx")
   jp_holiday <- jp_holiday %>% mutate(holiday = as.Date(holiday))
+
   
   # データタイプを変換する
   simulated <- simulated %>%
@@ -38,11 +39,18 @@ preprocess_simulated <- function(simulated, long_holiday_flag, long_holiday_date
            wd = as.factor(weekdays(date)),
            holiday = as.factor(ifelse((date %in% jp_holiday$holiday | wd == "日曜日" | wd == "土曜日"),
                                       "hld", "weekd")),
-           long_holiday = as.factor(ifelse((as.character(long_holiday_flag) == "yes" &
-                                              date >= as.Date(long_holiday_dates[1], origin = "1970-01-01") &
-                                              date <= as.Date(long_holiday_dates[2], origin = "1970-01-01")),
-                                           "lhld", "non")),
            weight = 1)
+  
+  
+  if (as.character(long_holiday_flag) == "yes"){
+    
+    simulated <- simulated %>% 
+      mutate(long_holiday = ifelse(date >= as.Date(long_holiday_dates[1], origin = "1970-01-01") &
+                                     date <= as.Date(long_holiday_dates[2], origin = "1970-01-01")),
+                                    "lhld", "non")
+    
+  }
+
   
   
   # 休日後を調べるために休日を調べる
