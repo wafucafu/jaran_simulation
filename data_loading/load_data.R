@@ -27,4 +27,3 @@ switch_tabs <- function(session, destination){
   updateNavbarPage(session, "navibar", selected = destination)
   
 }
-

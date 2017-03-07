@@ -36,7 +36,10 @@ create_category_pair <- function(data, test_range){
   
   # ユニークな媒体*デバイス変数を作る
   test_period <- as.Date(as.Date(test_range[1]):as.Date(test_range[2]), origin = "1970-01-01")
-  category_pair <- data %>% filter(as.Date(date) %in% test_period) %>% distinct(category_pair) %>% unlist()
+  category_pair <- data %>%
+    filter(as.Date(date) %in% test_period) %>% 
+    distinct(category_pair) %>% 
+    unlist(use.name = FALSE)
   
   return(category_pair)
 }
@@ -49,6 +52,8 @@ create_category_variable <- function(data, test_range, category_pair){
   pc_or_sp <- paste(c("_PC", "_SP"), collapse = "|")
   categories <<- gsub(pc_or_sp, "", category_pair)
   category_list <<- categories %>% unique()
+  
+  #print(data)
   
   # データに媒体情報を追加
   df <- data.frame(category_pair, category_name = categories)

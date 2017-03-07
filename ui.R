@@ -46,27 +46,16 @@ ui <- fluidPage(
                
                
                # シミューレション期間を決める
-               dateRangeInput("date_range", "4. シミュレーション期間設定", 
-                              start = paste0("2017-01-01"),
-                              end = paste0("2017-01-31"),
-                              format = "yyyy-mm-dd",
-                              language = "ja"),
+               uiOutput("date_range"),
                
                
                # テスト期間を決める
-               dateRangeInput("test_range", "5. テスト期間を設定",
-                              start = paste0("2016-11-14"),
-                              end = paste0("2016-12-14"),
-                              format = "yyyy-mm-dd",
-                              language = "ja"),
+               uiOutput("test_range"),
                
                
                # 学習期間を決める
-               dateRangeInput("train_range", "6. 学習期間を設定",
-                              start = paste0("2016-01-01"),
-                              end = paste0("2016-12-14"),
-                              format = "yyyy-mm-dd",
-                              language = "ja"),
+               uiOutput("train_range"),
+
                
                HTML('</br>'),
                
@@ -74,14 +63,6 @@ ui <- fluidPage(
                # シミュレーションスタートボタン
                conditionalPanel(condition = "output.file_validated == true",
                                 actionButton("start_simulation", "シミュレーション開始")
-               ),
-               
-               HTML('</br>'),
-               
-               
-               # ダウンロードボタン
-               conditionalPanel(condition = "output.simulation_status == true",
-                                downloadButton('start_download', 'ダウンロード')
                ),
                
                HTML('</br>')
@@ -102,11 +83,7 @@ ui <- fluidPage(
                
                # 大型連休ありの場合の期間選択
                conditionalPanel(condition = "input.long_holiday_button == 'yes' ",
-                                dateRangeInput("long_holiday_range", "7. 大型連休設定",
-                                               start = paste0(Sys.Date() - day(Sys.Date()) + 1),
-                                               end = paste0(Sys.Date() + days_in_month(Sys.Date()) - day(Sys.Date())),
-                                               format = "yyyy-mm-dd",
-                                               language = "ja")),
+                                uiOutput("long_holiday_range")),
                
                HTML('</br>'),
                
@@ -173,7 +150,29 @@ ui <- fluidPage(
                         
                         uiOutput("plot_tabs"),
                         
+                        HTML('</br>'),
+                        
+                        # ダウンロードボタン
+                        conditionalPanel(condition = "output.simulation_status == true",
+                                         downloadButton('report_download', 'ダウンロード')
+                        ),
+                        
                         HTML('</br>')),
+               
+               
+               # カーブランキング
+               tabPanel("カーブランキング",
+                        
+                        h3("媒体別カーブランキング表"),
+                        
+                        selectInput("categories", "施策", c()),
+                        
+                        tableOutput("curve_ranking"),
+                        
+                        # ダウンロードボタン
+                        conditionalPanel(condition = "output.simulation_status == true",
+                                         downloadButton('ranking_download', 'ダウンロード'))),
+               
                
                
                # 入力データサンプル
@@ -191,7 +190,13 @@ ui <- fluidPage(
                         # 上限コストを出力
                         h5("2. 上限コストのサンプル"),
                         
-                        tableOutput("upper_cost_table")),
+                        fluidRow(
+                          splitLayout(cellWidths = c("30%", "40%", "40%"), 
+                                      tableOutput("upper_cost_table"),
+                                      uiOutput("upper_cost_bar1"),
+                                      uiOutput("upper_cost_bar2"))
+                          )
+                        ),
                
                
                # 日別割合のサンプル
