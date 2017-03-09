@@ -268,6 +268,62 @@ server <- function(input, output, session) {
   })
   
   
+  # エラーの色区別
+  output$raw_data_sample <- renderUI({
+    
+    if (is.null(validation_status$raw_data)){
+      
+      tags$div(
+        HTML(paste(tags$span(style="color:red", "1. 過去データのサンプル"), sep = ""))
+      )
+      
+    } else {
+      
+      tags$div(
+        HTML(paste(tags$span(style="color:green", "1. 過去データのサンプル"), sep = ""))
+      )
+      
+    }
+    
+  })
+  
+  
+  output$upper_cost_sample <- renderUI({
+    
+    if (is.null(validation_status$upper_cost)){
+      
+      tags$div(
+        HTML(paste(tags$span(style="color:red", "2. 上限コストのサンプル"), sep = ""))
+      )
+      
+    } else {
+
+      tags$div(
+        HTML(paste(tags$span(style="color:green", "2. 上限コストのサンプル"), sep = ""))
+      )
+      
+    }
+    
+  })
+  
+  
+  output$daily_pct_sample <- renderUI({
+    
+    if (is.null(validation_status$daily_pct)){
+      
+      tags$div(
+        HTML(paste(tags$span(style="color:red", "3. 日別割合のサンプル"), sep = ""))
+      )
+      
+    } else {
+      
+      tags$div(
+        HTML(paste(tags$span(style="color:green", "3. 日別割合のサンプル"), sep = ""))
+      )
+      
+    }
+    
+  })
   
   ################################## 下準備 ####################################
   

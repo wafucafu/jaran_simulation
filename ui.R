@@ -184,7 +184,7 @@ ui <- fluidPage(
                tabPanel("過去データ",
                         
                         # 入力データを出力
-                        h5("1. 生データのサンプル"),
+                        uiOutput("raw_data_sample"),
                         
                         tableOutput("raw_data_table")),
                
@@ -193,7 +193,7 @@ ui <- fluidPage(
                tabPanel("上限データ",
                         
                         # 上限コストを出力
-                        h5("2. 上限コストのサンプル"),
+                        uiOutput("upper_cost_sample"),
                         
                         fluidRow(
                           splitLayout(cellWidths = c("30%", "40%", "40%"), 
@@ -208,13 +208,14 @@ ui <- fluidPage(
                tabPanel("日別割合",
                         
                         # 日別割合出力
-                        h5("3. 日別割合のサンプル"),
+                        uiOutput("daily_pct_sample"),
                         
                         tableOutput("daily_pct_table"))
                
                
                # メインパネルタブ
             )
+  
     
     
     # メインパネル
@@ -224,10 +225,11 @@ ui <- fluidPage(
   # タグの作成
   tags$head(
     tags$style(HTML("
-                    .shiny-output-error-validation {
+                    h5 {
                     color: red;
                     }
-                    ")))
+                    "))
+    )
   
   
   # UI仕様  
